@@ -1,9 +1,11 @@
-use std::{collections::HashMap, net::SocketAddrV4, os::fd::AsFd};
+use std::{collections::HashMap, net::SocketAddrV4, os::fd::AsFd, time::Instant};
 
 use nix::sys::epoll::*;
 use socket2::{Domain, Socket, Type};
 
 use crate::{config::{GATE, TCP_LIFE_TIME}, default_config::{CHICK_INIT_NUM, GATE_PORT}, log::{self, Log}};
+
+//use self::epoll::flags_str_name;
 
 use super::{Gate, Tag};
 
@@ -18,7 +20,7 @@ impl Gate {
         let epoll: Epoll = Epoll::new(EpollCreateFlags::empty()).unwrap();
         let logger = Log::create("gate");
 
-        Gate{ socket , epoll , next_id:1 , lines:HashMap::new(), logger }
+        Gate{ socket , epoll , next_id:10 , lines:HashMap::new(), logger }
     }
 }
 
@@ -26,9 +28,20 @@ impl Gate {
     pub fn start(&mut self) {
         self.init();
         loop {
+            
             log::next_frame();
+            
+            let t = Instant::now();
             self.network_check();
+            let ms = t.elapsed().as_millis();
+            if ms > 1 {
+                self.log(format!("network_check[{}]",ms));
+            }
+
             self.poll();
+
+            let t = Instant::now();
+
             self.check_dns_result();
             self.gather_dns_query();
             self.clear_dead_line();
@@ -36,6 +49,12 @@ impl Gate {
             self.mark_close();
             self.deregister();
             self.gather_client_hello();
+
+            let ms = t.elapsed().as_millis();
+            if ms > 1 {
+                self.log(format!("low half[{}]",ms));
+            }
+            
         }
     }
 }
@@ -43,6 +62,7 @@ impl Gate {
 impl Gate {
     fn init(&mut self) {
         let address: SocketAddrV4 = format!("0.0.0.0:{}",GATE_PORT).parse().unwrap();
+        self.socket.set_nonblocking(true).unwrap();
         self.socket.bind(&address.into()).unwrap();
         self.socket.listen(128).unwrap();
         self.log(format!("listening on {:?}",address));
@@ -57,25 +77,41 @@ impl Gate {
     }
 
     fn poll(&mut self) {
-        //self.log(format!("blocking polling..."));
         let raw = EpollEvent::empty();
-        let mut events = [raw;2];
-        let mil = TCP_LIFE_TIME as u16 * 700;
+        let mut events = [raw;24];
+        let mil = TCP_LIFE_TIME as u16 * 100;
         let timeout = EpollTimeout::from(mil);
         self.epoll.wait(&mut events, timeout).unwrap();
+        
+        let t = Instant::now();
+        let mut count = 0;
+        
         for v in events {
             let id = v.data();
-            for flag in v.events() {
-                match flag {
-                    EpollFlags::EPOLLIN => self.epoll_in(id),
-                    EpollFlags::EPOLLOUT => self.on_write_able_event(id),
-                    EpollFlags::EPOLLRDHUP => self.on_rd_hang_up_event(id),
-                    EpollFlags::EPOLLERR => self.epoll_err(id),
-                    EpollFlags::EPOLLHUP => self.on_hang_up_event(id),
-                    other => self.on_event(id,other),
+            if id > 0 {
+                count = count + 1;
+                for flags in v.events() {
+                    match flags {
+                        EpollFlags::EPOLLIN => self.epoll_in(id),
+                        EpollFlags::EPOLLOUT => self.on_write_able_event(id),
+                        EpollFlags::EPOLLRDHUP => self.on_rd_hang_up_event(id),
+                        EpollFlags::EPOLLERR => self.epoll_err(id),
+                        EpollFlags::EPOLLHUP => self.on_hang_up_event(id),
+                        other => self.on_event(id,other),
+                    }
                 }
             }
         }
+
+        if count > 20 {
+            self.log(format!("event num {}",count));
+        }
+
+        let ms = t.elapsed().as_millis();
+        if ms > 1 {
+            self.log(format!("poll[{}]",ms));
+        }
+        
     }
 
     fn epoll_in(&mut self,id:u64) {
@@ -87,7 +123,7 @@ impl Gate {
 
     fn epoll_err(&mut self,id:u64) {
         match id {
-            GATE => log::im(format!("gate error")),
+            GATE => self.err(format!("gate error")),
             other => self.on_error_event(other),
         }
     }
@@ -95,7 +131,9 @@ impl Gate {
     fn accept_john(&mut self) {
         match self.socket.accept() {
             Ok((socket,_)) => self.on_john_connect(socket),
-            Err(e) => println!("{}",e),
+            Err(e) => {
+                self.err(format!("{}",e));
+            },
         }
     }
 
@@ -104,6 +142,7 @@ impl Gate {
             self.find_chick_for_john(socket);
         } else {
             let id = self.next_id();
+            socket.set_nonblocking(true).unwrap();
             self.new_line(id, 0, Tag::MainLand, socket);
         }
     }

@@ -71,7 +71,7 @@ impl Gate {
 
     pub fn deregister(&mut self) {
         let mut hang_up:Vec<u64> = Vec::new();
-        let mut world:Vec<u64> = Vec::new();
+        let mut register:Vec<u64> = Vec::new();
         let mut mainland:Vec<u64> = Vec::new();
         
         for (_,line) in self.lines.iter_mut() {
@@ -80,12 +80,16 @@ impl Gate {
                 line.set_status(Status::DeRegister);
             } else {
                 match line.tag {
-                    Tag::World => {
+                    Tag::Hk | Tag::World => {
                         if line.is_established() {
                             hang_up.push(line.id);
-                            world.push(line.id);
-                            mainland.push(line.pair_id);
-                            line.set_status(Status::FirstPackDone);
+                            register.push(line.id);
+                            line.set_status(Status::FirstDone);
+                            
+                            match line.tag {
+                                Tag::World => mainland.push(line.pair_id),
+                                _ => {},
+                            }
                         }
                     },
                     _ => {},
@@ -100,7 +104,7 @@ impl Gate {
             self.remove_fd( line.socket.as_fd() );
         }
 
-        for id in world.iter() {
+        for id in register.iter() {
             let line = self.lines.get(id).unwrap();
             self.register_read_event(line.socket.as_fd(), line.id);
             
@@ -126,32 +130,33 @@ impl Gate {
         for (_,line) in self.lines.iter_mut() {
             if line.is_dead() {
                 dead.push(line.id);
-            }
-
-            if line.is_hk_chick() {
-                hk = hk + 1;
-                
-                if line.is_raw() {
-                    raw =  raw + 1;
+            } else {
+                if line.is_hk_chick() {
+                    hk = hk + 1;
+                    
+                    if line.is_raw() {
+                        raw =  raw + 1;
+                    }
+    
+                    if line.is_working() {
+                        working = working + 1;
+                    }
+    
+                    if !line.tcp_active() {
+                        timeout = timeout + 1;
+                    }
+    
+                    if line.is_ready() {
+                        ready = ready + 1;
+                    }
+                    
                 }
-
-                if line.is_working() {
-                    working = working + 1;
-                }
-
-                if !line.tcp_active() {
-                    timeout = timeout + 1;
-                }
-
-                if line.is_ready() {
-                    ready = ready + 1;
-                }
-                
             }
         }
-        if frame() > 100 && working > 1 && dead.len() + raw + timeout + working + ready < hk {
+
+        if true || frame() > 100 && working > 1 && raw + timeout + working + ready < hk {
             self.err(format!("dead:{},hk:{},raw:{},timeout:{},working:{},ready:{}",dead.len(),hk,raw,timeout,working,ready));
-            panic!()
+            //panic!()
         }
         
 
@@ -202,7 +207,7 @@ impl Gate {
     pub fn on_write_able_event(&mut self,id:u64) {
         let line = self.lines.get_mut(&id).unwrap();
         match line.tag {
-            Tag::World => {
+            Tag::Hk | Tag::World => {
                 line.on_connect_success();
             },
             _ => log::im(format!("[{}]on_write_able_event Unexpected",id)),
@@ -237,7 +242,7 @@ impl Gate {
 
     pub fn new_line(&mut self,id:u64,pair_id:u64,tag:Tag,socket:Socket) {
         match tag {
-            Tag::World => self.register_write_event(socket.as_fd(), id),
+            Tag::Hk | Tag::World => self.register_write_event(socket.as_fd(), id),
             _ => self.register_read_event(socket.as_fd(), id),
         }
         let line = Line::new(id,pair_id,tag,socket);

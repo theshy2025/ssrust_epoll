@@ -1,10 +1,12 @@
+use std::time::Instant;
+
 use crate::{config::{ATYP_HOST_NAME, ATYP_INDEX}, log, ss::{reverse, u8r, Line, Status}};
 
 impl Line {
     
     pub fn on_data_from_mainland(&mut self,buf:&mut [u8]) -> usize {
-        self.log(format!("on_data_from_mainland {} bytes {:?}",buf.len(),self.status));
-        let id = self.is_heart_beat(buf);
+        self.log(format!("on_data_from_mainland {} bytes {:?} [{}]",buf.len(),self.status,self.clock.elapsed().as_millis()));
+        let id = self.try_decode_heart_beat(buf);
         if id > 0 {
             self.recv_client_heart_beat(id);
             return 0;
@@ -19,10 +21,16 @@ impl Line {
                 if self.pair_id > 0 {
                     buf.len()
                 } else {
-                    self.log(format!("data no where to go"));
+                    self.err(format!("data had no where to go"));
                     0
                 }
             },
+            
+            Status::CoolDown => {
+                self.err(format!("data had no where to go"));
+                0
+            },
+
             _ => todo!()
         }
     }
@@ -33,18 +41,18 @@ impl Line {
 
     pub fn dns_query_success(&mut self,world_id:u64) {
         let len = self.client_hello_data.len();
-        self.log(format!("dns_query_success {} client_hello len {}",world_id,len));
+        self.log(format!("dns_query_success {} client_hello len {} [{}]",world_id,len,self.clock.elapsed().as_millis()));
         self.set_pair_id(world_id);
         self.set_status(Status::DnsQuerySuccess);
     }
 
     pub fn dns_query_fail(&mut self) {
-        self.log(format!("dns_query_fail {:?}",self.website_host));
+        self.log(format!("dns_query_fail {:?}",self.peer_ip));
     }
 
     pub fn world_connect_success(&mut self) {
         let len = self.client_hello_data.len();
-        self.log(format!("world_connect_success client_hello len {}",len));
+        self.log(format!("world_connect_success client_hello len {} [{}]",len,self.clock.elapsed().as_millis()));
         self.set_status(Status::WorldConnectSuccess);
     }
 
@@ -85,7 +93,7 @@ impl Line {
         }
     }
 
-    fn is_heart_beat(&self,buf:&mut [u8]) -> u64 {
+    fn try_decode_heart_beat(&self,buf:&mut [u8]) -> u64 {
         if buf.len() != u8::BITS as usize {
             return 0;
         }
@@ -95,9 +103,10 @@ impl Line {
     
 
     fn recv_sni_msg(&mut self,buf:&mut [u8]) -> usize {
+        self.clock = Instant::now();
         self.decode_host_name(buf);
-        self.set_status(Status::FirstPackDone);
-        let m = format!("[{}]{:?}:{}",self.id,self.website_host,self.website_port);
+        self.set_status(Status::FirstDone);
+        let m = format!("[{}]{:?}:{}",self.id,self.peer_ip,self.peer_port);
         self.log(m.clone());
         log::im(m);
         0
@@ -110,11 +119,11 @@ impl Line {
             ATYP_HOST_NAME => {
                 let len = u8r(buf[ATYP_INDEX+1]) as usize;
                 match String::from_utf8((&buf[ATYP_INDEX+2..ATYP_INDEX+2+len]).to_vec()) {
-                    Ok(ret) => self.website_host = ret,
+                    Ok(ret) => self.peer_ip = ret,
                     Err(e) => log::im(format!("[{}]{:?}",e,self.id)),
                 }
         
-                self.website_port = u16::from_be_bytes([buf[ATYP_INDEX+len+2],buf[ATYP_INDEX+len+3]]);
+                self.peer_port = u16::from_be_bytes([buf[ATYP_INDEX+len+2],buf[ATYP_INDEX+len+3]]);
             },
 
             other => {

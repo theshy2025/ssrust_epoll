@@ -28,8 +28,8 @@ impl Gate {
             match line.tag {
                 Tag::MainLand => {
                     match line.status {
-                        Status::FirstPackDone => {
-                            names.push((line.id,line.website_host.clone()));
+                        Status::FirstDone => {
+                            names.push((line.id,line.peer_ip.clone()));
                             line.waiting_for_dns_result();
                         },
                         _ => {},
@@ -60,8 +60,8 @@ impl Gate {
 
     pub fn on_dns_result(&mut self,id:u64,ret:Option<String>) {
         let line = self.lines.get_mut(&id).unwrap();
-        let host_name = line.website_host.clone();
-        let port = line.website_port;
+        let host_name = line.peer_ip.clone();
+        let port = line.peer_port;
         match ret {
             Some(ip) => {
                 let ip_address = format!("{}:{}",ip,port);
@@ -72,8 +72,8 @@ impl Gate {
                 let line = self.lines.get_mut(&id).unwrap();
                 line.dns_query_success(world_id);
                 let world_line = self.lines.get_mut(&world_id).unwrap();
-                world_line.set_website_host(host_name);
-                world_line.set_website_host(ip_address);
+                world_line.set_peer_ip(host_name);
+                world_line.set_peer_ip(ip_address);
                 world_line.start_connect();
             }
             None => line.dns_query_fail(),

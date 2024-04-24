@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 
 use nix::sys::epoll::Epoll;
 use socket2::Socket;
@@ -21,12 +21,13 @@ pub enum Tag {
 pub enum Status {
     Raw,
     Established,
-    FirstPackDone,
+    FirstDone,
     WaitingDnsResult,
     DnsQuerySuccess,
     WorldConnectSuccess,
-    SecondPackDone,
+    SecondDone,
     EncryptDone,
+    CoolDown,
     ReadClose,
     WriteClose,
     ReadWriteBothClose,
@@ -42,12 +43,14 @@ pub struct Line {
     status:Status,
     socket:Socket,
     logger:Log,
-    website_host:String,
-    website_port:u16,
+    peer_ip:String,
+    peer_port:u16,
     client_hello_data:Vec<u8>,
     dns_result:Vec<(u64,Option<String>)>,
     last_recv_heart_beat:i64,
     last_send_heart_beat:i64,
+    clock:Instant,
+    traffic:usize,
 }
 
 

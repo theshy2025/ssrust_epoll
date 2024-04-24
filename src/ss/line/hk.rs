@@ -22,8 +22,12 @@ impl Line {
         if self.pair_id > 0 {
             return;
         }
+
+        if self.is_raw() {
+            return;
+        }
         
-        if log::now() - self.last_send_heart_beat < TCP_LIFE_TIME/2 {
+        if log::now() - self.last_send_heart_beat < TCP_LIFE_TIME/10 {
             return;
         }
 
@@ -40,9 +44,9 @@ impl Line {
             Ok(arr) => {
                 let id = u64::from_be_bytes(arr);
                 self.log(format!("server id {}",id));
-                self.set_status(Status::Established);
+                self.set_status(Status::EncryptDone);
                 self.last_recv_heart_beat = log::now();
-                self.log(format!("on_recv_server_heart_beat {}",self.last_recv_heart_beat));
+                self.log(format!("on_recv_server_heart_beat {} {}",self.last_recv_heart_beat,self.clock.elapsed().as_secs()));
             },
             Err(e) => self.err(format!("{}",e)),
         };

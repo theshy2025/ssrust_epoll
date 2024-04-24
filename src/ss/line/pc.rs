@@ -4,11 +4,11 @@ use crate::{config::ATYP_INDEX, log, ss::{u8r, Line, Status}};
 
 impl Line {
     pub fn on_data_from_pc(&mut self,buf:&mut [u8]) -> usize {
-        self.log(format!("on_data_from_pc {} bytes {:?}",buf.len(),self.status));
+        self.log(format!("on_data_from_pc {} bytes {:?}[{}]",buf.len(),self.status,self.clock.elapsed().as_millis()));
         match self.status {
             Status::Raw => self.s5_hello(),
-            Status::FirstPackDone => self.s5_sni(buf),
-            Status::SecondPackDone => self.s5_client_hello(buf),
+            Status::FirstDone => self.s5_sni(buf),
+            Status::SecondDone => self.s5_client_hello(buf),
             Status::EncryptDone => buf.len(),
             _ => todo!()
         }
@@ -19,7 +19,7 @@ impl Line {
     fn s5_hello(&mut self) -> usize {
         self.log(format!("s5_hello {:?}",self.status));
         self.socket.write(&[5,0]).unwrap();
-        self.set_status(Status::FirstPackDone);
+        self.set_status(Status::FirstDone);
         0
     }
 
@@ -45,7 +45,7 @@ impl Line {
         }
 
         self.socket.write(&[5,0,0,1,0,0,0,0,0,0]).unwrap();
-        self.set_status(Status::SecondPackDone);
+        self.set_status(Status::SecondDone);
         
         buf.len()
     }

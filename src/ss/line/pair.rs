@@ -11,7 +11,8 @@ impl Line {
         self.log(format!("your pair[{}] now close {},{:?}",id,self.pair_id,self.tag));
         self.set_pair_id(0);
         match self.tag {
-            Tag::MainLand | Tag::Hk => self.set_status(Status::Raw),
+            Tag::MainLand => self.set_status(Status::CoolDown),
+            Tag::Hk => self.set_status(Status::Raw),
             _ => {},
         }
     }

@@ -1,5 +1,3 @@
-use std::net::Shutdown;
-
 use crate::{config::TCP_LIFE_TIME, log::{self, frame}, ss::{Line, Status, Tag}};
 
 impl Line {
@@ -31,19 +29,16 @@ impl Line {
 
     pub fn on_error(&mut self) {
         let err = self.socket.take_error().unwrap();
-        self.log(format!("on_error {:?} {:?}",self.status,err));
+        self.err(format!("on_error {:?} {:?}",self.status,err));
     }
 
-    pub fn _shut_down(&mut self,how:Shutdown) {
-        self.log(format!("shut_down {:?},{:?},{:?}",how,self.status,self.tag));
-        match self.socket.shutdown(how) {
-            Ok(_) => {},
-            Err(e) => {
-                let m = format!("[{}]shutdown {:?} fail {}",self.id,how,e);
-                self.log(m.clone());
-            },
-        }
+    pub fn turn_dead(&mut self) {
+        let kb = self.traffic/1024;
+        self.err(format!("turn_dead {:?} {}kb",self.status,kb));
+        self.set_pair_id(0);
+        self.set_status(Status::Dead);
     }
+
 }
 
 impl Line {
@@ -69,14 +64,21 @@ impl Line {
         }
     }
 
+    pub fn is_encrypt_done(&self) -> bool {
+        match self.status {
+            Status::EncryptDone => true,
+            _ => false,
+        }
+    }
+
     pub fn is_working(&self) -> bool {
         if self.pair_id == 0 {
             return false;
         }
 
         match self.status {
-            Status::Established | Status::FirstPackDone | 
-            Status::SecondPackDone | Status::EncryptDone => true,
+            Status::Established | Status::FirstDone | 
+            Status::SecondDone | Status::EncryptDone => true,
             
             _ => false,
         }
@@ -89,27 +91,24 @@ impl Line {
         }
         
         if frame() > 100 {
-            log::im(format!("[{}]{:?} {}",self.id,self.status,gap));
+            //log::im(format!("[{}]{:?} {}",self.id,self.status,gap));
         }
 
         false
     }
 
     pub fn is_ready(&self) -> bool {
-        if self.is_working() {
+        if self.pair_id > 0 {
             return false;
         }
-
         
         if !self.tcp_active() {
             return false;
         }
 
-        if self.is_established() {
+        if self.is_encrypt_done() {
             return true;
         }
-
-        
 
         false
     }
