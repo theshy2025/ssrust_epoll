@@ -28,7 +28,7 @@ impl Gate {
                     str.push_str(s);
                     str.push(',');
                 }
-                log::im(format!("[{}]add_fd {:?} success {}",id,fd,str));
+                //log::im(format!("[{}]add_fd {:?} success {}",id,fd,str));
             },
 
             Err(e) => log::im(format!("[{}]add_fd {:?} fail {}",id,fd,e)),

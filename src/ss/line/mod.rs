@@ -86,4 +86,10 @@ impl Line {
         self.logger.add(s);
         self.logger.flush();
     }
+
+    fn err(&mut self,s:String) {
+        let s = format!("[{}][{}]{}",self.id,self.pair_id,s);
+        self.log(s.clone());
+        log::im(s);
+    }
 }

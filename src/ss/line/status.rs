@@ -1,6 +1,6 @@
 use std::net::Shutdown;
 
-use crate::{config::TCP_LIFE_TIME, log, ss::{Line, Status, Tag}};
+use crate::{config::TCP_LIFE_TIME, log::{self, frame}, ss::{Line, Status, Tag}};
 
 impl Line {
     pub fn set_status(&mut self,new:Status) {
@@ -55,6 +55,13 @@ impl Line {
         }
     }
 
+    pub fn is_raw(&self) -> bool {
+        match self.status {
+            Status::Raw => true,
+            _ => false,
+        }
+    }
+
     pub fn is_established(&self) -> bool {
         match self.status {
             Status::Established => true,
@@ -75,24 +82,36 @@ impl Line {
         }
     }
 
+    pub fn tcp_active(&self) -> bool {
+        let gap = log::now() - self.last_recv_heart_beat;
+        if gap < TCP_LIFE_TIME {
+            return true;
+        }
+        
+        if frame() > 100 {
+            log::im(format!("[{}]{:?} {}",self.id,self.status,gap));
+        }
+
+        false
+    }
+
     pub fn is_ready(&self) -> bool {
         if self.is_working() {
             return false;
         }
 
-        let gap = log::now() - self.last_recv_heart_beat;
-        if gap > TCP_LIFE_TIME {
-            log::im(format!("[{}]{}",self.id,gap));
+        
+        if !self.tcp_active() {
             return false;
         }
 
-        match self.status {
-            Status::Established => true,
-            _ => {
-                log::im(format!("[{}]{:?}",self.id,self.status));
-                false
-            },
+        if self.is_established() {
+            return true;
         }
+
+        
+
+        false
     }
 
     pub fn is_read_write_both_close(&self) -> bool {

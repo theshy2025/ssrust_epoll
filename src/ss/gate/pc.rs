@@ -28,11 +28,9 @@ impl Gate {
             self.new_line(id, chick_id, Tag::Pc, socket);
             let line = self.lines.get_mut(&chick_id).unwrap();
             line.set_pair_id(id);
-            self.log(format!("chick[{}]for john[{}]",chick_id,id))
+            //self.log(format!("chick[{}]for john[{}]",chick_id,id))
         } else {
-            let m = format!("no chick available");
-            self.log(m.clone());
-            log::im(m);
+            self.err(format!("no chick available"));
         }
     }
 

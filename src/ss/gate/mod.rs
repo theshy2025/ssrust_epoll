@@ -57,7 +57,7 @@ impl Gate {
     }
 
     fn poll(&mut self) {
-        self.log(format!("blocking polling..."));
+        //self.log(format!("blocking polling..."));
         let raw = EpollEvent::empty();
         let mut events = [raw;2];
         let mil = TCP_LIFE_TIME as u16 * 700;
@@ -117,5 +117,10 @@ impl Gate {
     fn log(&mut self,s:String) {
         self.logger.add(s);
         self.logger.flush();
+    }
+
+    fn err(&mut self,s:String) {
+        log::im(s.clone());
+        self.log(s);
     }
 }

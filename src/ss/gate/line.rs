@@ -3,7 +3,7 @@ use std::os::fd::AsFd;
 use nix::sys::epoll::EpollFlags;
 use socket2::Socket;
 
-use crate::{config::BUFF_SIZE, log, ss::{Gate, Line, Status, Tag}};
+use crate::{config::BUFF_SIZE, log::{self, frame}, ss::{Gate, Line, Status, Tag}};
 
 impl Gate {
     pub fn mark_close(&mut self) {
@@ -116,8 +116,11 @@ impl Gate {
     pub fn clear_dead_line(&mut self) {
         let mut dead:Vec<u64> = Vec::new();
         let mut hk = 0;
+        let mut raw = 0;
         let mut working = 0;
         let mut ready = 0;
+        let mut timeout = 0;
+        
 
         
         for (_,line) in self.lines.iter_mut() {
@@ -128,8 +131,16 @@ impl Gate {
             if line.is_hk_chick() {
                 hk = hk + 1;
                 
+                if line.is_raw() {
+                    raw =  raw + 1;
+                }
+
                 if line.is_working() {
                     working = working + 1;
+                }
+
+                if !line.tcp_active() {
+                    timeout = timeout + 1;
                 }
 
                 if line.is_ready() {
@@ -138,8 +149,11 @@ impl Gate {
                 
             }
         }
-
-        self.log(format!("dead:{},hk:{},working:{},ready:{}",dead.len(),hk,working,ready));
+        if frame() > 100 && working > 1 && dead.len() + raw + timeout + working + ready < hk {
+            self.err(format!("dead:{},hk:{},raw:{},timeout:{},working:{},ready:{}",dead.len(),hk,raw,timeout,working,ready));
+            panic!()
+        }
+        
 
         for id in dead {
             self.lines.remove(&id);
@@ -208,7 +222,7 @@ impl Gate {
                 let mut buf = [0;BUFF_SIZE];
                 let n = line.on_read_able(&mut buf);
                 let pid = line.pair_id;
-                self.log(format!("line[{}][{}]garbage {} bytes",id,pid,n));
+                //self.log(format!("line[{}][{}]garbage {} bytes",id,pid,n));
                 if n > 0 {
                     if pid > 0 {
                         let line = self.lines.get_mut(&pid).unwrap();

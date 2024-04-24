@@ -8,7 +8,7 @@ impl Line {
             if self.pair_id > 0 {
                 return buf.len()
             } else {
-                self.log(format!("data no where to go"));
+                self.err(format!("data no where to go"));
                 return 0;
             }
         }
@@ -16,10 +16,6 @@ impl Line {
         self.on_recv_server_heart_beat(buf);
         
         0
-    }
-
-    pub fn _reset(&mut self) {
-        self.log(format!("reset {:?} {:?} {:?}",self.pair_id,self.tag,self.status));
     }
 
     pub fn send_heart_beat(&mut self) {
@@ -46,9 +42,9 @@ impl Line {
                 self.log(format!("server id {}",id));
                 self.set_status(Status::Established);
                 self.last_recv_heart_beat = log::now();
-                self.log(format!("update last_recv_heart_beat to {}",self.last_recv_heart_beat));
+                self.log(format!("on_recv_server_heart_beat {}",self.last_recv_heart_beat));
             },
-            Err(e) => self.log(format!("{}",e)),
+            Err(e) => self.err(format!("{}",e)),
         };
         0
     }
