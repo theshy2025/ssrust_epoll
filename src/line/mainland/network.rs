@@ -81,15 +81,18 @@ impl LineMainLand {
 
 
     fn decode_host_name(&mut self,buf:&mut [u8]) -> usize {
+        let buf_len = buf.len();
         let mut stop = 0;
         
         let atyp = buf[ATYP_INDEX];
         
         match atyp {
             ATYP_HOST_NAME => {
-                let len = u8r(buf[ATYP_INDEX+1]) as usize;
+                let len = buf[ATYP_INDEX+1] as usize;
                 stop = ATYP_INDEX+len+3;
-
+                if buf_len <= stop {
+                    log::err(format!("[{}]{},{},{},{:?}",self.id(),buf_len,stop,len,buf));
+                }
                 let mut vec:Vec<u8> = Vec::new();
                 
                 for i in ATYP_INDEX+2..ATYP_INDEX+2+len {
@@ -144,11 +147,11 @@ impl LineMainLand {
         }
 
         let len = self.client_hello_data.len();
-        self.log(format!("move_out_client_hello_data {}",len));
         
         if len > 0 {
             let data = self.client_hello_data.clone();
             self.client_hello_data.clear();
+            self.log(format!("move_out_client_hello_data {}",len));
             self.step = Step::ClientHelloDone;
             Some(data)
         } else {

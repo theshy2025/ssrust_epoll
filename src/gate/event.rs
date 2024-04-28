@@ -1,6 +1,6 @@
 use nix::sys::epoll::EpollFlags;
 
-use crate::{config::{BUFF_SIZE, GATE_ID}, log::Log};
+use crate::{config::{BUFF_SIZE, GATE_ID}, line::mainland::LineMainLand, log::Log};
 
 use super::Gate;
 
@@ -26,6 +26,10 @@ impl Gate {
             if pid > 0 {
                 let line = self.lines.get_mut(&pid).unwrap();
                 line.socket_send(&buf[..n]);
+                match line.as_any_mut().downcast_mut::<LineMainLand>() {
+                    Some(mainland) => mainland.send_done(n),
+                    None => {},
+                }
             }
         }
     }

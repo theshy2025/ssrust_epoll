@@ -1,4 +1,4 @@
-use std::any::Any;
+use std::{any::Any, time::Instant};
 
 use socket2::Socket;
 
@@ -52,7 +52,14 @@ impl LineNetWork for LineHk {
 
     fn on_network_data(&mut self,buf:&mut [u8]) -> usize {
         let len = buf.len();
-        self.log(format!("on network data from {} {} bytes",self.peer_name(),len));
+        let t = self.clock.elapsed().as_millis();
+        if t > 1000 {
+            self.clock = Instant::now();
+            self.speed = 0;
+        }
+        self.speed = self.speed + len;
+        
+        self.log(format!("on network data from {} {} bytes [{}]ms[{}]k",self.peer_name(),len,t,self.speed/1024));
         if len > u8::BITS as usize {
             if self.pair_id > 0 {
                 return buf.len()

@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use socket2::Socket;
 
 use crate::{config::TCP_LIFE_TIME, global, log::log_dir::LogDir};
@@ -13,13 +15,16 @@ pub struct LineHk {
     pub pair_id:u64,
     last_send_heart_beat:i64,
     last_recv_heart_beat:i64,
+    speed:usize,
+    clock:Instant,
 }
 
 impl LineHk {
     pub fn new(id:u64,socket:Socket) -> LineHk {
         let buf_writer = LineHk::create_buf_writer(id);
         let basic = BaseLine::new(id, socket, buf_writer);
-        LineHk { basic, pair_id: 0, last_send_heart_beat: 0, last_recv_heart_beat: 0 }
+        LineHk { basic, pair_id: 0, last_send_heart_beat: 0, last_recv_heart_beat: 0, 
+            speed: 0, clock: Instant::now() }
     }
 }
 

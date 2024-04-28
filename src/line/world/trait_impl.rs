@@ -1,8 +1,8 @@
-use std::any::Any;
+use std::{any::Any, time::Instant};
 
 use socket2::Socket;
 
-use crate::{line::{event::LineEvent, network::LineNetWork, pair::LinePair, status::{LineStatus, Status}, LineTrait}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
+use crate::{line::{event::LineEvent, network::LineNetWork, pair::LinePair, status::{LineStatus, Status}, LineTrait}, log::{self, buf_writer::LogBufWriter, log_dir::LogDir, Log}};
 
 use super::LineWorld;
 
@@ -41,7 +41,13 @@ impl LinePair for LineWorld {
 }
 
 impl LineEvent for LineWorld {
-    
+    fn turn_dead(&mut self) {
+        self.set_status(Status::Dead);
+        let k = self.traffic/1024;
+        if k > 1024 {
+            log::im(format!("[{}]{}k",self.id(),k));
+        }
+    }
 }
 
 impl LineNetWork for LineWorld {
@@ -54,8 +60,15 @@ impl LineNetWork for LineWorld {
     }
 
     fn on_network_data(&mut self,buf:&mut [u8]) -> usize {
+        let t = self.clock.elapsed().as_millis();
+        if t > 1000 {
+            self.clock = Instant::now();
+            self.speed = 0;
+        }
         let len = buf.len();
-        self.log(format!("on network data from {} {} bytes",self.peer_name(),len));
+        self.traffic = self.traffic + len;
+        self.speed = self.speed + len;
+        self.log(format!("on network data from {} {} bytes [{}]ms {}k",self.peer_name(),len,t,self.speed/1024));
         len
     }
 }

@@ -33,7 +33,7 @@ impl Gate {
             }
         }
 
-        if count > 1 {
+        if count > 10 {
             self.log(format!("event num {}",count));
         }
     }

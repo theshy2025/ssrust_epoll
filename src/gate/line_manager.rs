@@ -40,7 +40,7 @@ impl Gate {
             }
         }
 
-        if frame() > 1 && hk > 1 {
+        if frame() > 100 && hk > 1 && ready < 20 {
             self.log(format!("dead:{},hk:{},not_establish:{},timeout:{},working:{},ready:{}",dead.len(),hk,not_establish,timeout,working,ready));
             //panic!()
         }
@@ -61,7 +61,7 @@ impl Gate {
                 let pid = line.pair_id();
                 if pid > 0 {
                     close.push(pid);
-                    line.set_status(Status::Dead);
+                    line.turn_dead();
                 }
             }
         }

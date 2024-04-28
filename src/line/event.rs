@@ -12,7 +12,7 @@ pub trait LineEvent: LineNetWork {
 
     fn on_hang_up(&mut self) {
         self.log(format!("on_hang_up"));
-        //self.set_stage(READ_WRITE_BOTH_CLOSE);
+        self.set_status(Status::ReadWriteBothClose);
     }
 
     fn on_rd_hang_up(&mut self) {
@@ -71,6 +71,8 @@ pub trait LineEvent: LineNetWork {
         }
     }
 
-    
+    fn turn_dead(&mut self) {
+        self.set_status(Status::Dead);
+    }
 }
 
