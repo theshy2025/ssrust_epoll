@@ -2,7 +2,7 @@ use std::{any::Any, time::Instant};
 
 use socket2::Socket;
 
-use crate::{default_config::SERVER_IP, line::{event::LineEvent, network::LineNetWork, pair::LinePair, status::{LineStatus, Status}, LineTrait}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
+use crate::{config, line::{event::LineEvent, network::LineNetWork, pair::LinePair, status::{LineStatus, Status}, LineTrait}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
 
 use super::LineHk;
 
@@ -47,7 +47,7 @@ impl LineNetWork for LineHk {
     }
 
     fn peer_ip(&self) -> String {
-        SERVER_IP.to_string()
+        config::remote_address()
     }
 
     fn on_network_data(&mut self,buf:&mut [u8]) -> usize {

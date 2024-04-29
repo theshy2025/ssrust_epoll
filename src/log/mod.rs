@@ -1,6 +1,6 @@
 use std::{fs::{self, File, OpenOptions}, io::Write};
 
-use crate::{default_config::DEVICE, global::frame};
+use crate::{config::{self}, global::frame};
 
 use self::buf_writer::LogBufWriter;
 
@@ -19,23 +19,26 @@ pub trait Log {
 }
 
 pub fn init() {
-    match fs::remove_dir_all( DEVICE ) {
+    let device = config::device();
+    match fs::remove_dir_all( &device ) {
         Ok(_) => {}
         Err(_) => {},
     }
-    fs::create_dir_all( DEVICE ).unwrap();
-    File::create( format!("{}/.log",DEVICE) ).unwrap();
-    File::create( format!("{}/err.log",DEVICE) ).unwrap();
+    fs::create_dir_all( &device ).unwrap();
+    File::create( format!("{}/.log",&device) ).unwrap();
+    File::create( format!("{}/err.log",&device) ).unwrap();
 }
 
 
 
 pub fn im(s:String) {
-    write(format!("[{}]{}\n",frame(),s),format!("{}/.log",DEVICE));
+    let device = config::device();
+    write(format!("[{}]{}\n",frame(),s),format!("{}/default.log",device));
 }
 
 pub fn err(s:String) {
-    write(format!("[{}]{}\n",frame(),s),format!("{}/err.log",DEVICE));
+    let device = config::device();
+    write(format!("[{}]{}\n",frame(),s),format!("{}/err.log",device));
 }
 
 fn write(s:String,path:String) {

@@ -1,6 +1,6 @@
 use socket2::Socket;
 
-use crate::{default_config::CHICK_INIT_NUM, log::Log};
+use crate::{config, log::Log};
 
 use super::Gate;
 
@@ -15,7 +15,8 @@ impl Gate {
     }
     
     fn on_john_connect(&mut self,socket:Socket) {
-        if CHICK_INIT_NUM > 0 {
+        let num = config::chick_init_num();
+        if num > 0 {
             self.find_chick_for_pc(socket);
         } else {
             self.new_mainland_line(socket);

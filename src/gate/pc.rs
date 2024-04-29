@@ -5,7 +5,7 @@ use crate::{line::{hk::LineHk, pc::LinePc}, log::log_dir::LogDir};
 use super::Gate;
 
 impl Gate {
-    pub fn create_hk_chicks(&mut self,n:i32) {
+    pub fn create_hk_chicks(&mut self,n:u8) {
         LineHk::create_dir();
         LinePc::create_dir();
         for _ in 0..n {

@@ -1,6 +1,6 @@
 use std::fs;
 
-use crate::default_config::DEVICE;
+use crate::config::{self};
 
 use super::buf_writer::LogBufWriter;
 
@@ -12,14 +12,16 @@ pub trait LogDir {
     }
 
     fn create_dir() {
+        let device = config::device();
         let dir = Self::dir_name();
-        let path = format!("{}/{}",DEVICE,dir);
+        let path = format!("{}/{}",device,dir);
         fs::create_dir_all( path ).unwrap();
     }
 
     fn create_buf_writer(id:u64) -> LogBufWriter {
+        let device = config::device();
         let dir = Self::dir_name();
-        let path = format!("{}/{}/{}.log",DEVICE,dir,id);
+        let path = format!("{}/{}/{}.log",device,dir,id);
         LogBufWriter::new(path).unwrap()
     }
 }

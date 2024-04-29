@@ -2,7 +2,7 @@ use std::net::SocketAddrV4;
 
 use socket2::{Domain, Socket, Type};
 
-use crate::{config::DNS_ID, default_config::SERVER_IP, line::{dns::LineDns, mainland::{network::Step, LineMainLand}, world::LineWorld}, log::{log_dir::LogDir, Log}};
+use crate::{config::{self, DNS_ID}, line::{dns::LineDns, mainland::{network::Step, LineMainLand}, world::LineWorld}, log::{log_dir::LogDir, Log}};
 
 use super::Gate;
 
@@ -13,7 +13,7 @@ impl Gate {
         LineWorld::create_dir();
 
         let socket = Socket::new(Domain::IPV4, Type::DGRAM, None).unwrap();
-        let address:SocketAddrV4 = SERVER_IP.parse().unwrap();
+        let address:SocketAddrV4 = config::remote_address().parse().unwrap();
 
         match socket.connect(&address.into()) {
             Ok(_) => {

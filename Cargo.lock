@@ -172,6 +172,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "simple_config_parser"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d562b7cb7cef3d30257e59582674255342665ced8462ad861412e074c653b11"
+
+[[package]]
 name = "socket2"
 version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -188,6 +194,7 @@ dependencies = [
  "chrono",
  "nix",
  "simple-dns",
+ "simple_config_parser",
  "socket2",
 ]
 
