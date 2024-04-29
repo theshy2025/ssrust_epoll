@@ -1,0 +1,4 @@
+device = aliyun;
+gate_port = 3389;
+chick_init_num = 0;
+remote_address = 100.100.2.136:53;//dns server address
