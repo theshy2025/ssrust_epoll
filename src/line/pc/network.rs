@@ -55,7 +55,7 @@ impl LinePc {
         let port = u16::from_be_bytes([buf[stop],buf[stop+1]]);
 
         let s = format!("id:{} s5_sni len:{},{:?}:{}",self.id(),len,host,port);
-        log::im(s.clone());
+        log::def(s.clone());
         self.log(s);
 
         for i in start..stop+2 {

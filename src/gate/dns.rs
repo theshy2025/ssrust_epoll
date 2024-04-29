@@ -17,6 +17,7 @@ impl Gate {
 
         match socket.connect(&address.into()) {
             Ok(_) => {
+                self.log(format!("connect to dns server {} success",address));
                 self.new_dns_line(socket);
             },
             Err(e) => self.log(format!("unbale connect to {},{}",address,e)),

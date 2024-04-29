@@ -25,13 +25,13 @@ pub fn init() {
         Err(_) => {},
     }
     fs::create_dir_all( &device ).unwrap();
-    File::create( format!("{}/.log",&device) ).unwrap();
+    File::create( format!("{}/default.log",&device) ).unwrap();
     File::create( format!("{}/err.log",&device) ).unwrap();
 }
 
 
 
-pub fn im(s:String) {
+pub fn def(s:String) {
     let device = config::device();
     write(format!("[{}]{}\n",frame(),s),format!("{}/default.log",device));
 }

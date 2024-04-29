@@ -45,7 +45,7 @@ impl LineEvent for LineWorld {
         self.set_status(Status::Dead);
         let k = self.traffic/1024;
         if k > 1024 {
-            log::im(format!("[{}]{}k",self.id(),k));
+            log::def(format!("[{}]{}k",self.id(),k));
         }
     }
 }
