@@ -16,6 +16,11 @@ pub trait Log {
         self.logger().add(s);
         self.logger().flush();
     }
+
+    fn err(&mut self,s:String) {
+        crate::log::err(format!("[{}]{}",self.id(),s));
+        self.log(s);
+    }
 }
 
 pub fn init() {

@@ -40,10 +40,10 @@ pub trait LineNetWork : LinePair {
         match self.socket().write(buf) {
             Ok(n) => {
                 if n < buf.len() {
-                    self.log(format!("some data left"));
+                    self.err(format!("some data left"));
                 }
             },
-            Err(e) => self.log(format!("stream write fail {}",e)),
+            Err(e) => self.err(format!("stream write fail {}",e)),
         }
     }
 

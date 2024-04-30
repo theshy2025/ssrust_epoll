@@ -68,7 +68,7 @@ impl LineNetWork for LineWorld {
         let len = buf.len();
         self.traffic = self.traffic + len;
         self.speed = self.speed + len;
-        self.log(format!("on network data from {} {} bytes [{}]ms {}k",self.peer_name(),len,t,self.speed/1024));
+        self.log(format!("on network data from {} {} bytes [{}]ms [{}]k",self.peer_name(),len,t,self.speed/1024));
         len
     }
 }
