@@ -1,6 +1,6 @@
 use std::os::fd::AsFd;
 
-use crate::{global::frame, line::{hk::LineHk, mainland::LineMainLand,status::Status}, log::{self, Log}};
+use crate::{global::frame, line::{tcp2vps::LineTcp2Vps, mainland::LineMainLand,status::Status}, log::{self, Log}};
 
 use super::Gate;
 
@@ -19,7 +19,7 @@ impl Gate {
             if line.status() == Status::Dead {
                 dead.push(id);
             } else {
-                match line.as_any().downcast_ref::<LineHk>() {
+                match line.as_any().downcast_ref::<LineTcp2Vps>() {
                     Some(h) => {
                         hk = hk + 1;
 
@@ -154,7 +154,7 @@ impl Gate {
 impl Gate {
     pub fn tcp_keep_alive(&mut self) {
         for (_,line) in self.lines.iter_mut() {
-            match line.as_any_mut().downcast_mut::<LineHk>() {
+            match line.as_any_mut().downcast_mut::<LineTcp2Vps>() {
                 Some(hk) => hk.send_heart_beat(),
                 None => {},
             }

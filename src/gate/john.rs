@@ -32,7 +32,7 @@ impl Gate {
     }
     
     fn on_john_connect(&mut self,socket:Socket) {
-        let num = config::chick_init_num();
+        let num = config::tcp_2_vps_line_init_num();
         if num > 0 {
             self.find_chick_for_pc(socket);
         } else {

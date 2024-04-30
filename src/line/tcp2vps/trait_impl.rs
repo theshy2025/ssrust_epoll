@@ -4,9 +4,9 @@ use socket2::Socket;
 
 use crate::{config, line::{event::LineEvent, network::LineNetWork, pair::LinePair, status::{LineStatus, Status}, LineTrait}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
 
-use super::LineHk;
+use super::LineTcp2Vps;
 
-impl Log for LineHk {
+impl Log for LineTcp2Vps {
     fn id(&self) -> u64 {
         self.basic.id
     }
@@ -23,7 +23,7 @@ impl Log for LineHk {
     
 }
 
-impl LinePair for LineHk {
+impl LinePair for LineTcp2Vps {
     fn pair_id(&self) -> u64 {
         self.pair_id
     }
@@ -41,7 +41,7 @@ impl LinePair for LineHk {
 
 
 
-impl LineNetWork for LineHk {
+impl LineNetWork for LineTcp2Vps {
     fn socket(&self) -> &Socket {
         &self.basic.socket
     }
@@ -76,12 +76,12 @@ impl LineNetWork for LineHk {
 
 }
 
-impl LineEvent for LineHk {
+impl LineEvent for LineTcp2Vps {
 
     
 }
 
-impl LineTrait for LineHk {
+impl LineTrait for LineTcp2Vps {
     fn as_any(&self) -> &dyn Any {
         self
     }
@@ -91,6 +91,6 @@ impl LineTrait for LineHk {
     }
 }
 
-impl LogDir for LineHk {
+impl LogDir for LineTcp2Vps {
     
 }

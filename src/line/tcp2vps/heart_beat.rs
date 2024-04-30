@@ -1,8 +1,8 @@
 use crate::{config::TCP_LIFE_TIME, global, line::{network::LineNetWork, status::{LineStatus, Status}}, log::Log};
 
-use super::LineHk;
+use super::LineTcp2Vps;
 
-impl LineHk {
+impl LineTcp2Vps {
     pub fn send_heart_beat(&mut self) {
         if self.pair_id > 0 {
             return;

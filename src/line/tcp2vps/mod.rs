@@ -10,7 +10,7 @@ mod heart_beat;
 mod trait_status;
 mod trait_impl;
 
-pub struct LineHk {
+pub struct LineTcp2Vps {
     pub basic:BaseLine,
     pub pair_id:u64,
     last_send_heart_beat:i64,
@@ -19,16 +19,16 @@ pub struct LineHk {
     clock:Instant,
 }
 
-impl LineHk {
-    pub fn new(id:u64,socket:Socket) -> LineHk {
-        let buf_writer = LineHk::create_buf_writer(id);
+impl LineTcp2Vps {
+    pub fn new(id:u64,socket:Socket) -> LineTcp2Vps {
+        let buf_writer = LineTcp2Vps::create_buf_writer(id);
         let basic = BaseLine::new(id, socket, buf_writer);
-        LineHk { basic, pair_id: 0, last_send_heart_beat: 0, last_recv_heart_beat: 0, 
+        LineTcp2Vps { basic, pair_id: 0, last_send_heart_beat: 0, last_recv_heart_beat: 0, 
             speed: 0, clock: Instant::now() }
     }
 }
 
-impl LineHk {
+impl LineTcp2Vps {
     pub fn is_ready(&self) -> bool {
         if self.pair_id > 0 {
             return false;

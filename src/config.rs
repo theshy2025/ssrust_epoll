@@ -15,7 +15,7 @@ pub const TCP_LIFE_TIME:i64 = 30;
 
 pub static DEVICE:OnceLock<String> = OnceLock::new();
 
-pub static CHICK_INIT_NUM:OnceLock<u8> = OnceLock::new();
+pub static TCP_2_VPS_LINE_INIT_NUM:OnceLock<u8> = OnceLock::new();
 
 pub static DNS_SERVER:OnceLock<String> = OnceLock::new();
 
@@ -88,10 +88,10 @@ pub fn vps_udp_port() -> u16 {
     *val
 }
 
-pub fn chick_init_num() -> u8 {
-    let val = CHICK_INIT_NUM.get_or_init(|| {
+pub fn tcp_2_vps_line_init_num() -> u8 {
+    let val = TCP_2_VPS_LINE_INIT_NUM.get_or_init(|| {
         let f = Config::new().file("custom.cfg").unwrap();
-        f.get("chick_init_num").unwrap()
+        f.get("tcp_2_vps_line_init_num").unwrap()
     });
     
     *val

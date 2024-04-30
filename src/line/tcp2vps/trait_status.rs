@@ -1,8 +1,8 @@
 use crate::{line::status::{LineStatus, Status}, log::Log};
 
-use super::LineHk;
+use super::LineTcp2Vps;
 
-impl LineStatus for LineHk {
+impl LineStatus for LineTcp2Vps {
     fn status(&self) -> Status {
         self.basic.status
     }

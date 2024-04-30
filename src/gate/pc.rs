@@ -1,21 +1,21 @@
 use socket2::{Domain, Socket, Type};
 
-use crate::{line::{hk::LineHk, pc::LinePc}, log::log_dir::LogDir};
+use crate::{line::{tcp2vps::LineTcp2Vps, pc::LinePc}, log::log_dir::LogDir};
 
 use super::Gate;
 
 impl Gate {
-    pub fn create_hk_chicks(&mut self,n:u8) {
-        LineHk::create_dir();
+    pub fn create_tcp_2_vps_lines(&mut self,n:u8) {
+        LineTcp2Vps::create_dir();
         LinePc::create_dir();
         for _ in 0..n {
-            self.crate_one_hk_chick();
+            self.crate_a_tcp_2_vps_line();
         }
     }
 
-    fn crate_one_hk_chick(&mut self) -> u64 {
+    fn crate_a_tcp_2_vps_line(&mut self) -> u64 {
         let socket = Socket::new(Domain::IPV4, Type::STREAM, None).unwrap();
-        let id = self.new_hk_line(socket);
+        let id = self.new_tcp_2_vps_line(socket);
         let line = self.lines.get_mut(&id).unwrap();
         line.start_connect();
         id
@@ -32,7 +32,7 @@ impl Gate {
 
     fn find_idle_hk_chick(&self) -> u64 {
         for (_,line) in self.lines.iter() {
-            match line.as_any().downcast_ref::<LineHk>() {
+            match line.as_any().downcast_ref::<LineTcp2Vps>() {
                 Some(hk) => {
                     if hk.is_ready() {
                         return line.id();

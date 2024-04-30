@@ -86,9 +86,9 @@ impl Gate {
         self.init_udp_socket();
         
 
-        let n = config::chick_init_num();
+        let n = config::tcp_2_vps_line_init_num();
         if n > 0 {
-            self.create_hk_chicks(n);
+            self.create_tcp_2_vps_lines(n);
         } else {
             self.activate_dns_manager();
         }
