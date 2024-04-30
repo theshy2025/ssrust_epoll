@@ -13,7 +13,7 @@ impl Gate {
         LineWorld::create_dir();
 
         let socket = Socket::new(Domain::IPV4, Type::DGRAM, None).unwrap();
-        let address:SocketAddrV4 = config::remote_address().parse().unwrap();
+        let address:SocketAddrV4 = config::dns_server().parse().unwrap();
 
         match socket.connect(&address.into()) {
             Ok(_) => {

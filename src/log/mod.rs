@@ -8,7 +8,7 @@ pub mod buf_writer;
 pub mod log_dir;
 
 pub trait Log {
-    fn id(&self) -> u64;
+    fn id(&self) -> u64 {0}
 
     fn logger(&mut self) -> &mut LogBufWriter;
 

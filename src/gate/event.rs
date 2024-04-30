@@ -1,13 +1,14 @@
 use nix::sys::epoll::EpollFlags;
 
-use crate::{config::{BUFF_SIZE, GATE_ID}, line::mainland::LineMainLand, log::Log};
+use crate::{config::{BUFF_SIZE, TCP_GATE_ID, UDP_GATE_ID}, line::mainland::LineMainLand, log::Log};
 
 use super::Gate;
 
 impl Gate {
     pub fn epoll_in(&mut self,id:u64) {
         match id {
-            GATE_ID => self.accept_john(),
+            TCP_GATE_ID => self.accept_john(),
+            UDP_GATE_ID => self.on_udp_packet(),
             other => self.on_read_able_event(other),
         }
     }
@@ -41,7 +42,7 @@ impl Gate {
 
     pub fn epoll_err(&mut self,id:u64) {
         match id {
-            GATE_ID => self.log(format!("gate error")),
+            TCP_GATE_ID => self.log(format!("gate error")),
             other => {
                 let line = self.lines.get_mut(&other).unwrap();
                 line.on_error();

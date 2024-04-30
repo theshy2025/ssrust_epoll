@@ -47,7 +47,7 @@ impl LineNetWork for LineHk {
     }
 
     fn peer_ip(&self) -> String {
-        config::remote_address()
+        format!("{}:{}",config::vps_ip(),config::vps_tcp_port())
     }
 
     fn on_network_data(&mut self,buf:&mut [u8]) -> usize {
